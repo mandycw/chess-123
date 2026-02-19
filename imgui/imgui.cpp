@@ -1588,7 +1588,7 @@ ImGuiIO::ImGuiIO()
     ConfigInputTextEnterKeepActive = false;
     ConfigDragClickToInputText = false;
     ConfigWindowsResizeFromEdges = true;
-    ConfigWindowsMoveFromTitleBarOnly = false;
+    ConfigWindowsMoveFromTitleBarOnly = true;
     ConfigWindowsCopyContentsWithCtrlC = false;
     ConfigScrollbarScrollByPage = true;
     ConfigMemoryCompactTimer = 60.0f;
