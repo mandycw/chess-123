@@ -65,14 +65,14 @@ void Chess::FENtoBoard(const std::string& fen) {
         square->setBit(nullptr);
     });
     
-    int row = 0, col = 0;
+    int row = 7, col = 0;
     for(char symbol : fen){
         
         if(symbol ==  ' '){
             break;
         }
         if (symbol == '/') {
-            row++;
+            row--;
             col = 0;
         }
         else  if (symbol >= '1' && symbol <= '8') {
@@ -90,7 +90,6 @@ void Chess::FENtoBoard(const std::string& fen) {
             case 'Q': p = Queen; break;
             default: break;
             }
-            
 
             int playerNumber = isupper(symbol) ? 0 : 1;
             Bit* piece = PieceForPlayer(playerNumber, p);
@@ -98,7 +97,7 @@ void Chess::FENtoBoard(const std::string& fen) {
             piece->setGameTag(isupper(symbol) ? p : (p + 128));
             piece->setPosition(square->getPosition());
             square->setBit(piece);
-    
+            
 
             col++;
         }
