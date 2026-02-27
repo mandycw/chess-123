@@ -1,6 +1,9 @@
 #include "Chess.h"
+#include <string>
 #include <limits>
 #include <cmath>
+#include "Bitboard.h"
+
 
 Chess::Chess()
 {
@@ -47,6 +50,7 @@ void Chess::setUpBoard()
 
     _grid->initializeChessSquares(pieceSize, "boardsquare.png");
     FENtoBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+    
 
     startGame();
 }
@@ -105,8 +109,6 @@ void Chess::FENtoBoard(const std::string& fen) {
     
 }
 
-
-
 bool Chess::actionForEmptyHolder(BitHolder &holder)
 {
     return false;
@@ -118,11 +120,37 @@ bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
     int currentPlayer = getCurrentPlayer()->playerNumber() * 128;
     int pieceColor = bit.gameTag() & 128;
     if (pieceColor == currentPlayer) return true;
+    
+    // ChessSquare* square = (ChessSquare *)&src;
+    // int squareIndex = square->getSquareIndex();
+    // for(auto move : _moves){
+    //     if(move.from == squareIndex){
+    //         return true;
+    //     }
+    // }
     return false;
 }
 
-bool Chess::canBitMoveFromTo(Bit &bit, BitHolder &src, BitHolder &dst)
+bool Chess::canBitMoveFromTo(Bit &bit, BitHolder &from, BitHolder &to)
 {
+    ChessSquare* fromSquare = dynamic_cast<ChessSquare*>(&from);
+    ChessSquare* toSquare = dynamic_cast<ChessSquare*>(&to);
+
+    if(!fromSquare || !toSquare) return false;
+
+    std::string state = stateString();
+    char color = (bit.gameTag() < 128) ? 'W' : 'B';
+
+    auto moves = generateMoves(state.c_str(), color);
+
+    int fromIndex = fromSquare->getRow() * 8 + fromSquare->getColumn();
+    int toIndex = toSquare->getRow() * 8 + toSquare->getColumn();
+
+    for(auto &move : moves){
+        if(move.from == fromIndex && move.to == toIndex) return true;
+    }
+    return false;
+
     return true;
 }
 
@@ -183,3 +211,117 @@ void Chess::setStateString(const std::string &s)
         }
     });
 }
+
+bool isValid(int x, int y) {
+    return (x >= 0 && x < 8 && y >= 0 && y < 8);
+}
+
+void Chess::knightMoves(const char *state, std::vector<BitMove>& moves){
+    std::pair<int, int> knightOffsets[] = {
+        {2, 1}, {2, -1}, {-2, 1}, {-2, -1},
+        {1, 2}, {1, -2}, {-1, 2}, {-1, -2}
+    };
+
+    char knightPiece = getCurrentPlayer()->playerNumber() == 0 ? 'N' : 'n';
+
+    for(int y = 0; y<_gameOptions.rowY; ++y){
+        for(int x = 0; x<_gameOptions.rowX; ++x){
+            int index = y * _gameOptions.rowX + x;
+            if(state[index] == knightPiece){
+                for(auto& offset : knightOffsets){
+                    int newX = x + offset.first;
+                    int newY = y + offset.second;
+                    if(isValid(newX, newY)){
+                        addMove(state, moves, y, x, newY, newX);
+                    }
+                }
+            }
+            index++;
+        }
+    }
+}
+
+void Chess::pawnMoves(const char *state, std::vector<BitMove>& moves, int row, int col, int colorAsInt){
+    int direction = (colorAsInt == 1) ? 1 : -1;
+    int startRow = (colorAsInt == 1) ? 1 : 6;
+    
+    int nextRow = row + direction;
+
+    if (isValid(col, nextRow) && state[nextRow * 8 + col] == '0' ) {
+        addMove(state, moves, row, col, nextRow, col);
+        
+        if (row == startRow) {
+            int doubleRow = row + 2 * direction;
+            if (isValid(col, doubleRow) && state[doubleRow * 8 + col] == '0') {
+                addMove(state, moves, row, col, doubleRow, col);
+            }
+        }
+     }
+
+    for( int i = -1; i <=1; i +=2){
+        int newCol = col + i;
+        int index = state[nextRow * 8 + newCol];
+        if(isValid(newCol, nextRow) && index != '0' && (index < '0' || index > '9')){
+            addMove(state, moves, row, col, nextRow, newCol);
+        }
+    }
+    
+}
+
+void Chess::kingMoves(const char *state, std::vector<BitMove>& moves){
+    std::pair<int, int> kingOffsets[] = {
+        {-1, -1}, {-1, 0}, {-1, 1}, 
+        {0, -1}, {0, 1},
+        {1, -1}, {1, 0}, {1, 1}
+    };
+
+    char kingPiece = getCurrentPlayer()->playerNumber() == 0 ? 'K' : 'k';
+
+    for(int y = 0; y<_gameOptions.rowY; ++y){
+        for(int x = 0; x<_gameOptions.rowX; ++x){
+            int index = y * _gameOptions.rowX + x;
+            if(state[index] == kingPiece){
+                for(auto& offset : kingOffsets){
+                    int newX = x + offset.first;
+                    int newY = y + offset.second;
+                    if(isValid(newX, newY)){
+                        addMove(state, moves, y, x, newY, newX);
+                    }
+                }
+            }
+            index++;
+        }
+    }
+}
+
+void Chess::addMove(const char *state, std::vector<BitMove>& moves, int fromRow, int fromCol, int toRow, int toCol){
+    char piece = state[fromRow * 8 + fromCol];
+    if (piece == '0') return;
+    moves.emplace_back(fromRow * 8 + fromCol, toRow * 8 + toCol, static_cast<ChessPiece>(toupper(piece) - '0'));
+
+}
+
+std::vector<BitMove> Chess::generateMoves(const char *state, char color){
+    std::vector<BitMove> moves;
+    int colorAsInt = (color == 'W') ? 1 : -1;
+    for( int i = 0; i < 64; ++i){
+        int row = i / 8;
+        int col = i % 8;
+        char piece = state[i];
+        int pieceColor = (piece == '0') ? 0 : (piece < 'a') ? 1 : -1;
+        if(pieceColor == colorAsInt){
+            if (piece > 'a') piece = piece - ('a' - 'A');
+            switch(piece){
+            case 'P': pawnMoves(state, moves, row, col, colorAsInt); break;
+            case 'N': knightMoves(state, moves); break;
+            case 'K': kingMoves(state, moves); break;
+            }
+
+        }
+    }
+    
+    
+
+    return moves;
+}
+

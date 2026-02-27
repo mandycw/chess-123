@@ -2,19 +2,20 @@
 
 #include "Game.h"
 #include "Grid.h"
+#include "Bitboard.h"
 
 constexpr int pieceSize = 80;
 
-enum ChessPiece
-{
-    NoPiece,
-    Pawn,
-    Knight,
-    Bishop,
-    Rook,
-    Queen,
-    King
-};
+// enum ChessPiece
+// {
+//     NoPiece,
+//     Pawn ,
+//     Knight ,
+//     Bishop ,
+//     Rook,
+//     Queen,
+//     King
+// };
 
 class Chess : public Game
 {
@@ -23,11 +24,11 @@ public:
     ~Chess();
 
     void setUpBoard() override;
-
+    
     bool canBitMoveFrom(Bit &bit, BitHolder &src) override;
     bool canBitMoveFromTo(Bit &bit, BitHolder &src, BitHolder &dst) override;
     bool actionForEmptyHolder(BitHolder &holder) override;
-
+    ;
     void stopGame() override;
 
     Player *checkForWinner() override;
@@ -38,6 +39,13 @@ public:
     void setStateString(const std::string &s) override;
 
     Grid* getGrid() override { return _grid; }
+
+    void addMove(const char *state, std::vector<BitMove>& moves, int fromRow, int fromCol, int toRow, int toCol);
+    std::vector<BitMove> generateMoves(const char *state, char color);
+
+    void pawnMoves(const char *state, std::vector<BitMove>& moves, int row, int col, int colorAsInt);
+    void knightMoves(const char *state, std::vector<BitMove>& moves);
+    void kingMoves(const char *state, std::vector<BitMove>& moves);
 
 private:
     Bit* PieceForPlayer(const int playerNumber, ChessPiece piece);
