@@ -102,7 +102,6 @@ void Chess::FENtoBoard(const std::string& fen) {
             piece->setPosition(square->getPosition());
             square->setBit(piece);
             
-
             col++;
         }
     }
@@ -120,14 +119,6 @@ bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
     int currentPlayer = getCurrentPlayer()->playerNumber() * 128;
     int pieceColor = bit.gameTag() & 128;
     if (pieceColor == currentPlayer) return true;
-    
-    // ChessSquare* square = (ChessSquare *)&src;
-    // int squareIndex = square->getSquareIndex();
-    // for(auto move : _moves){
-    //     if(move.from == squareIndex){
-    //         return true;
-    //     }
-    // }
     return false;
 }
 
