@@ -1,13 +1,11 @@
-Fork or clone your this chess project into a new GitHub repository.
+In Chess.cpp, FentoBoard is used to transcribe a FEN string to a playable board. Castling, en passant and half move clock have not been implemented.
 
-Add support for FEN stringsLinks to an external site. to your game setup so that instead of the current way you are setting up your game board you are setting it up with a call similar to the following call.
+A bool called isValid() checks if a move is within the board. If so, addMove takes the state of the board, moves, the row & column the piece is moving from and the row & column the piece is moving to, and then places the piece accordingly. 
 
-FENtoBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+knightMoves(), pawnMoves() and kingMoves() are used to generate movements for knights, pawns and kings respectively. generateMoves() uses switch cases to handle movement generation based on which piece the player picks up.
 
-Your routine should be able to take just the board position portion of a FEN string, or the entire FEN string like so:
 
-FENtoBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+<img width="1260" height="790" alt="Screenshot 2026-02-26 181408" src="https://github.com/user-attachments/assets/bb7aa9f0-5b51-4852-86eb-ea99d60ac871" />
 
-(you can ignore the end for now)
 
-This will allow you to quickly check that your castling, promotion and en passant code is working.
+<img width="1916" height="1032" alt="Screenshot 2026-02-26 190106" src="https://github.com/user-attachments/assets/457c1555-90bc-4d29-bc92-e93b6b5a5018" />
