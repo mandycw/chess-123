@@ -46,6 +46,9 @@ public:
     void pawnMoves(const char *state, std::vector<BitMove>& moves, int row, int col, int colorAsInt);
     void knightMoves(const char *state, std::vector<BitMove>& moves);
     void kingMoves(const char *state, std::vector<BitMove>& moves);
+    void rookMoves(const char *state, std::vector<BitMove>& moves, int row, int col);
+    void bishopMoves(const char *state, std::vector<BitMove>& moves, int row, int col);
+    void queenMoves(const char *state, std::vector<BitMove>& moves, int row, int col);
 
 private:
     Bit* PieceForPlayer(const int playerNumber, ChessPiece piece);

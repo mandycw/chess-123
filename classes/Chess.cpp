@@ -241,6 +241,7 @@ void Chess::knightMoves(const char *state, std::vector<BitMove>& moves){
     }
 }
 
+
 void Chess::pawnMoves(const char *state, std::vector<BitMove>& moves, int row, int col, int colorAsInt){
     int direction = (colorAsInt == 1) ? 1 : -1;
     int startRow = (colorAsInt == 1) ? 1 : 6;
@@ -294,12 +295,83 @@ void Chess::kingMoves(const char *state, std::vector<BitMove>& moves){
     }
 }
 
+void Chess::rookMoves(const char *state, std::vector<BitMove>& moves, int row, int col){
+    int rookOffsets[4][2] = {
+        {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+    };
+    
+
+    for(int i = 0; i < 4; ++i){
+        int dr = rookOffsets[i][0];
+        int dc = rookOffsets[i][1];
+
+        for(int j = 1; j < 8; ++j){
+            int endRow = row + j * dr;
+            int endCol = col + j * dc;
+
+            if(isValid(endCol, endRow)){
+                addMove(state, moves, row, col, endRow, endCol);
+                if(state[endRow * 8 + endCol] != '0'){
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void Chess::bishopMoves(const char *state, std::vector<BitMove>& moves, int row, int col){
+    int bishopOffsets[4][2] ={
+        {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
+    };
+    for(int i = 0; i < 4; ++i){
+        int dr = bishopOffsets[i][0];
+        int dc = bishopOffsets[i][1];
+
+        for(int j = 1; j < 8; ++j){
+            int endRow = row + j * dr;
+            int endCol = col + j * dc;
+
+            if(isValid(endCol, endRow)){
+                addMove(state, moves, row, col, endRow, endCol);
+                if(state[endRow * 8 + endCol] != '0'){
+                    break;
+                }
+            }
+        }
+    }
+
+}
+
+void Chess::queenMoves(const char *state, std::vector<BitMove>& moves, int row, int col){
+    int queenOffsets[8][2] ={
+        {1, 1}, {1, -1}, {-1, 1}, {-1, -1},
+        {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+    };
+    for(int i = 0; i < 8; ++i){
+        int dr = queenOffsets[i][0];
+        int dc = queenOffsets[i][1];
+
+        for(int j = 1; j < 8; ++j){
+            int endRow = row + j * dr;
+            int endCol = col + j * dc;
+
+            if(isValid(endCol, endRow)){
+                addMove(state, moves, row, col, endRow, endCol);
+                if(state[endRow * 8 + endCol] != '0'){
+                    break;
+                }
+            }
+        }
+    }
+}
+
 void Chess::addMove(const char *state, std::vector<BitMove>& moves, int fromRow, int fromCol, int toRow, int toCol){
     char piece = state[fromRow * 8 + fromCol];
     if (piece == '0') return;
     moves.emplace_back(fromRow * 8 + fromCol, toRow * 8 + toCol, static_cast<ChessPiece>(toupper(piece) - '0'));
 
 }
+
 
 std::vector<BitMove> Chess::generateMoves(const char *state, char color){
     std::vector<BitMove> moves;
@@ -315,6 +387,9 @@ std::vector<BitMove> Chess::generateMoves(const char *state, char color){
             case 'P': pawnMoves(state, moves, row, col, colorAsInt); break;
             case 'N': knightMoves(state, moves); break;
             case 'K': kingMoves(state, moves); break;
+            case 'R': rookMoves(state, moves, row, col); break;
+            case 'B': bishopMoves(state, moves, row, col); break;
+            case 'Q': queenMoves(state, moves, row, col); break;
             }
 
         }
