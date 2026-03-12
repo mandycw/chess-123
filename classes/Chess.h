@@ -54,7 +54,9 @@ public:
     void updateAI();
     int AIBoardEval(const std::string &state);
     int negamax( std::string &state, int depth, int alpha, int beta, int playerColor);
-
+    bool isCheck(const std::string& state, char color);
+    bool isCheckmate(const std::string& state, char color);
+    
 private:
     Bit* PieceForPlayer(const int playerNumber, ChessPiece piece);
     Player* ownerAt(int x, int y) const;

@@ -165,6 +165,14 @@ Player* Chess::ownerAt(int x, int y) const
 
 Player* Chess::checkForWinner()
 {
+    std::string state = stateString();
+
+    if(isCheckmate(state, 'W')){
+        return getPlayerAt(1);
+    } 
+    if(isCheckmate(state, 'B')){
+        return getPlayerAt(0);
+    } 
     return nullptr;
 }
 
@@ -324,7 +332,6 @@ void Chess::queenMoves(const char *state, std::vector<BitMove>& moves, int row, 
             int endCol = col + j * queenOffsets[i][1];
 
             if(isValid(endCol, endRow)) {
-
                 if (!addMove(state, moves, row, col, endRow, endCol)) {
                     break;
                 }
@@ -377,6 +384,62 @@ std::vector<BitMove> Chess::generateMoves(const char *state, char color){
     return moves;
 }
 
+bool Chess::isCheck(const std::string& state, char color) {
+    char king = (color == 'W') ? 'K' : 'k';
+    int kingPos = -1;
+    
+    //find curr king
+    for (int i = 0; i < 64; ++i) {
+        if (state[i] == king) {
+            kingPos = i;
+            break;
+        }
+    }
+    
+    //if king is missing
+    if (kingPos == -1) return true; 
+
+    //generate all psuedo legal moves
+    char oppColor = (color == 'W') ? 'B' : 'W';
+    auto oppMoves = generateMoves(state.c_str(), oppColor);
+
+    //in check if any piece can land on king square
+    for (const auto& move : oppMoves) {
+        if (move.to == kingPos) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool Chess::isCheckmate(const std::string& state, char color) {
+    //if not in check, not checkmate
+    if (!isCheck(state, color)) {
+        return false; 
+    }
+
+    //generate all moves for curr player
+    auto moves = generateMoves(state.c_str(), color);
+
+    //test each move
+    for (const auto& move : moves) {
+        std::string tempState = state;
+        
+        //apply temp test
+        tempState[move.to] = tempState[move.from];
+        tempState[move.from] = '0';
+
+        //can move away, no longer in check
+        if (!isCheck(tempState, color)) {
+            return false;
+        }
+    }
+
+    //cant escape check, game lost
+    return true;
+}
+
 //assign point values to pieces
 const int pieceValues[] ={
     0,
@@ -412,6 +475,7 @@ bool Chess::testForTerm(const std::string &state){
         if(c == 'k') bKing = true;
     }
     return !wKing || !bKing;
+    
 }
 
 int Chess::AIBoardEval(const std::string &state){
@@ -455,7 +519,12 @@ int Chess::negamax(std::string &state, int depth, int alpha, int beta, int playe
     char color = (playerColor == 1) ? 'W' : 'B';
     auto moves = generateMoves(state.c_str(), color);
     if(moves.empty()){
-        return AIBoardEval(state) * playerColor;
+        if (isCheck(state, color)){
+            return -99999 + depth;
+        } else {
+            //draw
+            return 0;
+        }
     }
 
     for(auto &move : moves){
@@ -501,7 +570,7 @@ void Chess::updateAI(){
         int val = -negamax(state, 4, -99999, 99999, -1);
         state[move.from] = movingPiece;
         state[move.to] = capturedPiece;
-        if(val >bestVal){
+        if(val > bestVal){
             bestVal = val;
             bestMove = move;
             }
